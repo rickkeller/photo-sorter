@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+
+# Test data and output
+test_images/
+test_output/
+
+# Cache
+.cache/
+*.npy
+
+# OS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
