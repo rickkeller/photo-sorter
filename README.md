@@ -59,6 +59,59 @@ python culler.py --source /path/to/photos --output /path/to/report --analyze-onl
 python culler.py --source /path/to/photos --output /path/to/selected --resume
 ```
 
+## Batch Processing
+
+For directories with multiple subfolders (e.g., photos organized by trip or event), use `batch_culler.py` to process each folder independently while preserving the directory structure.
+
+### Basic Batch Usage
+
+Process all subfolders, keeping 10% of images per folder (minimum 10):
+
+```bash
+python batch_culler.py --source /path/to/photos --output /path/to/selected
+```
+
+### Fixed Count Per Folder
+
+Keep exactly 10 images per folder:
+
+```bash
+python batch_culler.py --source /path/to/photos --output /path/to/selected --min-per-folder 10 --max-per-folder 10
+```
+
+### Preview Mode
+
+See what would be processed without actually running:
+
+```bash
+python batch_culler.py --source /path/to/photos --output /path/to/selected --dry-run
+```
+
+### Batch CLI Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--source`, `-s` | required | Source directory with subfolders |
+| `--output`, `-o` | required | Output directory (structure preserved) |
+| `--ratio`, `-r` | 0.1 | Target ratio of images to keep (10%) |
+| `--min-per-folder` | 10 | Minimum images per folder |
+| `--max-per-folder` | 1000 | Maximum images per folder |
+| `--flat` | false | Flatten output to single folder |
+| `--dry-run` | false | Preview without processing |
+| `--use-llm` | false | Enable Ollama composition analysis |
+
+### Batch Output
+
+Output mirrors the source folder structure:
+
+```
+source/                          output/
+├── Trip-Italy/                  ├── Trip-Italy/
+│   ├── Rome/ (500 photos)       │   ├── Rome/ (10 best)
+│   └── Venice/ (300 photos)     │   └── Venice/ (10 best)
+└── Trip-Japan/ (1000 photos)    └── Trip-Japan/ (10 best)
+```
+
 ## CLI Options
 
 | Option | Default | Description |
