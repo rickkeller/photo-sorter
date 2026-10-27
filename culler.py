@@ -15,7 +15,7 @@ import numpy as np
 from tqdm import tqdm
 
 from image_loader import ImageLoader
-from embeddings import CLIPEmbeddingGenerator
+from embeddings import CLIPEmbeddingGenerator, get_device
 from deduplication import ImageDeduplicator, DuplicateCluster
 from aesthetic import AestheticScorer
 from composition import CompositionAnalyzer
@@ -44,7 +44,8 @@ class CullingPipeline:
         use_llm: bool = False,
         llm_candidates: int = 800,
         analyze_only: bool = False,
-        resume: bool = False
+        resume: bool = False,
+        device: Optional[str] = None
     ):
         """Initialize the culling pipeline.
 
@@ -69,6 +70,7 @@ class CullingPipeline:
         self.llm_candidates = llm_candidates
         self.analyze_only = analyze_only
         self.resume = resume
+        chosen = get_device(device)
 
         # Set up cache directory
         self.cache_dir = cache_dir or (self.source_dir / ".cache")
@@ -77,10 +79,11 @@ class CullingPipeline:
         self.image_loader = ImageLoader()
         self.embedding_generator = CLIPEmbeddingGenerator(
             cache_dir=self.cache_dir / "embeddings",
-            batch_size=batch_size
+            batch_size=batch_size,
+            device=chosen
         )
         self.deduplicator = ImageDeduplicator(similarity_threshold)
-        self.aesthetic_scorer = AestheticScorer()
+        self.aesthetic_scorer = AestheticScorer(device=chosen)
         self.composition_analyzer = CompositionAnalyzer() if use_llm else None
         self.selector = ImageSelector()
 
@@ -387,6 +390,12 @@ Examples:
         help="Batch size for CLIP processing (default: 16)"
     )
     parser.add_argument(
+        "--device",
+        choices=("auto", "cpu", "cuda", "mps"),
+        default="auto",
+        help="Torch device. auto uses MPS, then CUDA, then CPU (default: auto)"
+    )
+    parser.add_argument(
         "--similarity-threshold",
         type=float,
         default=0.92,
@@ -437,7 +446,8 @@ def main() -> None:
         use_llm=args.use_llm,
         llm_candidates=args.llm_candidates,
         analyze_only=args.analyze_only,
-        resume=args.resume
+        resume=args.resume,
+        device=args.device
     )
 
     try:

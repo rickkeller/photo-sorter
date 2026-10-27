@@ -8,7 +8,7 @@ A photo culling pipeline that reduces large photo libraries by removing duplicat
 - **Aesthetic scoring** - Ranks images using LAION's aesthetic predictor trained on AVA dataset
 - **Optional LLM composition analysis** - Uses Ollama vision models to evaluate composition (rule of thirds, leading lines, etc.)
 - **HEIC support** - Handles Apple's HEIC format alongside JPG/PNG
-- **CPU PyTorch** - CLIP and the aesthetic model run on CPU. CUDA and MPS are not selected.
+- **Device** - The default install is the CPU PyTorch wheel. If a CUDA or MPS build is installed, auto uses it. `--device cpu|cuda|mps` forces one.
 - **Resume capability** - Checkpoint system allows resuming interrupted runs
 - **Embedding cache** - Disk caching prevents re-processing on subsequent runs
 
@@ -23,8 +23,22 @@ cd photo-sorter
 python3 -m venv venv
 source venv/bin/activate
 
-# Install dependencies
+# Install dependencies. This file installs the CPU wheel.
 pip install -r requirements.txt
+```
+
+GPU acceleration is not in that file. Install it only if this machine has the matching hardware, then run with `--device auto` or `--device cuda` / `--device mps`.
+
+NVIDIA, CUDA 12.8:
+
+```bash
+pip install --upgrade torch --index-url https://download.pytorch.org/whl/cu128
+```
+
+Apple Silicon, MPS. Use the PyPI wheel, not the CPU index:
+
+```bash
+pip install --upgrade torch
 ```
 
 ## Usage
@@ -164,7 +178,7 @@ The `report.csv` contains all processed images with columns:
 
 - Python 3.10+
 - ~3GB disk space for CLIP model weights
-- CPU. This install uses the CPU PyTorch wheel.
+- CPU by default. CUDA 12.8 or Apple MPS if that torch build is installed.
 
 ## License
 
