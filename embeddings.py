@@ -1,8 +1,11 @@
-"""CLIP embedding generation with disk caching and MPS support."""
+"""CLIP embedding generation. PyTorch stays on CPU."""
 
 import logging
+import os
 from pathlib import Path
 from typing import Dict, List, Optional, Callable, Tuple
+
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 import numpy as np
 import torch
@@ -18,11 +21,7 @@ CLIP_MODEL_NAME = "openai/clip-vit-large-patch14"
 
 
 def get_device() -> torch.device:
-    """Select best available device: MPS > CUDA > CPU."""
-    if torch.backends.mps.is_available():
-        return torch.device("mps")
-    elif torch.cuda.is_available():
-        return torch.device("cuda")
+    """This package runs on CPU. It does not select CUDA or MPS."""
     return torch.device("cpu")
 
 
@@ -40,9 +39,11 @@ class CLIPEmbeddingGenerator:
         Args:
             cache_dir: Directory for embedding cache. Creates if needed.
             batch_size: Number of images per batch.
-            device: Torch device. Auto-selects if None.
+            device: Torch device. This package uses CPU.
         """
-        self.device = device or get_device()
+        if device is not None and getattr(device, "type", None) != "cpu":
+            logger.info("ignoring %s; this package uses CPU", device)
+        self.device = torch.device("cpu")
         self.batch_size = batch_size
         self.cache_dir = cache_dir
         self._model = None
@@ -139,14 +140,9 @@ class CLIPEmbeddingGenerator:
                     embeddings = outputs / outputs.norm(dim=-1, keepdim=True)
                     embeddings = embeddings.cpu().numpy()
 
-                # Store results and cache
                 for j, (path, _) in enumerate(batch):
                     results[path] = embeddings[j]
                     self._save_to_cache(path, embeddings[j])
-
-                # Clear MPS cache to prevent OOM
-                if self.device.type == "mps":
-                    torch.mps.empty_cache()
 
                 i += len(batch)
                 if progress_callback:
@@ -160,10 +156,6 @@ class CLIPEmbeddingGenerator:
                     # Reduce batch size and retry
                     current_batch_size = max(1, current_batch_size // 2)
                     logger.warning(f"OOM, reducing batch size to {current_batch_size}")
-                    if self.device.type == "mps":
-                        torch.mps.empty_cache()
-                    elif self.device.type == "cuda":
-                        torch.cuda.empty_cache()
                 else:
                     raise
 

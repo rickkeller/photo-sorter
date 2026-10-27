@@ -8,7 +8,7 @@ A photo culling pipeline that reduces large photo libraries by removing duplicat
 - **Aesthetic scoring** - Ranks images using LAION's aesthetic predictor trained on AVA dataset
 - **Optional LLM composition analysis** - Uses Ollama vision models to evaluate composition (rule of thirds, leading lines, etc.)
 - **HEIC support** - Handles Apple's HEIC format alongside JPG/PNG
-- **MPS acceleration** - Optimized for Apple Silicon with automatic fallback to CUDA/CPU
+- **CPU PyTorch** - CLIP and the aesthetic model run on CPU. CUDA and MPS are not selected.
 - **Resume capability** - Checkpoint system allows resuming interrupted runs
 - **Embedding cache** - Disk caching prevents re-processing on subsequent runs
 
@@ -164,7 +164,7 @@ The `report.csv` contains all processed images with columns:
 
 - Python 3.10+
 - ~3GB disk space for CLIP model weights
-- Apple Silicon (MPS), NVIDIA GPU (CUDA), or CPU
+- CPU. This install uses the CPU PyTorch wheel.
 
 ## License
 

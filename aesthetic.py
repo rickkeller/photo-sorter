@@ -8,8 +8,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from embeddings import get_device
-
 logger = logging.getLogger(__name__)
 
 # URL for LAION aesthetic predictor v2 linear weights
@@ -55,9 +53,11 @@ class AestheticScorer:
 
         Args:
             model_path: Path to model weights. Downloads if None.
-            device: Torch device. Auto-selects if None.
+            device: Torch device. This package uses CPU.
         """
-        self.device = device or get_device()
+        if device is not None and getattr(device, "type", None) != "cpu":
+            logger.info("ignoring %s; this package uses CPU", device)
+        self.device = torch.device("cpu")
         self.model_path = model_path
         self._model = None
 
